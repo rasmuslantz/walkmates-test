@@ -1,8 +1,11 @@
 package com.walkmates.lab1;
 
 import com.walkmates.model.Seeker;
+import com.walkmates.model.TrustTier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -198,7 +201,30 @@ class SeekerSpecBasedTest {
         assertThat(seeker.getBalance()).isEqualTo(19989.99);
     }
 
-    // TODO (Decision table): expected fee + max-bookings for each trust tier (FR-1.2).
+    // ---- Decision table: trust tier limits (FR-1.2) ----
+
+    @ParameterizedTest
+    @CsvSource({
+            "NEW, 1, 0.15",
+            "VERIFIED, 3, 0.12",
+            "TRUSTED, 5, 0.08",
+            "PRO_SITTER, 10, 0.05"
+    })
+    @DisplayName("Trust tier has the expected booking limit and platform fee")
+    void trustTierHasExpectedLimits(
+            TrustTier trustTier,
+            int expectedMaxBookings,
+            double expectedPlatformFee) {
+
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+        seeker.setTrustTier(trustTier);
+
+        assertThat(seeker.getMaxConcurrentBookings())
+                .isEqualTo(expectedMaxBookings);
+
+        assertThat(seeker.getTrustTier().getPlatformFee())
+                .isEqualTo(expectedPlatformFee);
+    }
 
     private Seeker seekerNearMaximumBalance() {
         Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
