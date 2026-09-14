@@ -165,6 +165,49 @@ class SeekerSpecBasedTest {
         assertThat(seeker.getBalance()).isZero();
     }
 
-    // TODO (BVA): a top-up that would push the balance above 20000.00 is rejected (FR-1.3).
+    // ---- Boundary Value Analysis: maximum wallet balance (FR-1.3) ----
+
+    @Test
+    @DisplayName("Resulting balance just below 20000 SEK is accepted")
+    void resultingBalanceJustBelowMaximumIsAccepted() {
+        Seeker seeker = seekerNearMaximumBalance();
+
+        seeker.addFunds(10.00);
+
+        assertThat(seeker.getBalance()).isEqualTo(19999.99);
+    }
+
+    @Test
+    @DisplayName("Resulting balance exactly at 20000 SEK is accepted")
+    void resultingBalanceAtMaximumIsAccepted() {
+        Seeker seeker = seekerNearMaximumBalance();
+
+        seeker.addFunds(10.01);
+
+        assertThat(seeker.getBalance()).isEqualTo(20000.00);
+    }
+
+    @Test
+    @DisplayName("Resulting balance above 20000 SEK is rejected")
+    void resultingBalanceAboveMaximumIsRejected() {
+        Seeker seeker = seekerNearMaximumBalance();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> seeker.addFunds(10.02));
+
+        assertThat(seeker.getBalance()).isEqualTo(19989.99);
+    }
+
     // TODO (Decision table): expected fee + max-bookings for each trust tier (FR-1.2).
+
+    private Seeker seekerNearMaximumBalance() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+
+        seeker.addFunds(5000.00);
+        seeker.addFunds(5000.00);
+        seeker.addFunds(5000.00);
+        seeker.addFunds(4989.99);
+
+        return seeker;
+    }
 }
