@@ -111,7 +111,60 @@ class SeekerSpecBasedTest {
                 () -> new Seeker("sam@example.com", "Sam", "070123456"));
     }
 
-    // TODO (BVA): just-below / at / just-above the 10.00 minimum top-up (FR-1.3).
+    // ---- Boundary Value Analysis: wallet top-up limits (FR-1.3) ----
+
+    @Test
+    @DisplayName("Top-up just below the 10 SEK minimum is rejected")
+    void topUpJustBelowMinimumIsRejected() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> seeker.addFunds(9.99));
+
+        assertThat(seeker.getBalance()).isZero();
+    }
+
+    @Test
+    @DisplayName("Top-up exactly at the 10 SEK minimum is accepted")
+    void topUpAtMinimumIsAccepted() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+
+        seeker.addFunds(10.00);
+
+        assertThat(seeker.getBalance()).isEqualTo(10.00);
+    }
+
+    @Test
+    @DisplayName("Top-up just above the 10 SEK minimum is accepted")
+    void topUpJustAboveMinimumIsAccepted() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+
+        seeker.addFunds(10.01);
+
+        assertThat(seeker.getBalance()).isEqualTo(10.01);
+    }
+
+    @Test
+    @DisplayName("Top-up just below the 5000 SEK single-transaction maximum is accepted")
+    void topUpJustBelowSingleMaximumIsAccepted() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+
+        seeker.addFunds(4999.99);
+
+        assertThat(seeker.getBalance()).isEqualTo(4999.99);
+    }
+
+    @Test
+    @DisplayName("Top-up just above the 5000 SEK single-transaction maximum is rejected")
+    void topUpJustAboveSingleMaximumIsRejected() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> seeker.addFunds(5000.01));
+
+        assertThat(seeker.getBalance()).isZero();
+    }
+
     // TODO (BVA): a top-up that would push the balance above 20000.00 is rejected (FR-1.3).
     // TODO (Decision table): expected fee + max-bookings for each trust tier (FR-1.2).
 }
