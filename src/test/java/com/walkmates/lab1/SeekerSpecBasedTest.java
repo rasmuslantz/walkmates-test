@@ -27,16 +27,91 @@ class SeekerSpecBasedTest {
         assertThat(seeker.getBalance()).isEqualTo(Seeker.MAX_SINGLE_TOP_UP);
     }
 
-    // TODO (EP): one valid + one invalid equivalence class for email, name, and phone (FR-1.1).
-    // TODO (BVA): just-below / at / just-above the 10.00 minimum top-up (FR-1.3).
-    // TODO (BVA): a top-up that would push the balance above 20000.00 is rejected (FR-1.3).
-    // TODO (Decision table): expected fee + max-bookings for each trust tier (FR-1.2).
+    // ---- Equivalence Partitioning: registration fields (FR-1.1) ----
 
     @Test
-    @DisplayName("TODO: replace me — invalid email is rejected at registration")
-    void invalidEmailIsRejected() {
-        // Example of the shape; expand into your full EP set.
+    @DisplayName("Valid email is accepted")
+    void validEmailIsAccepted() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+
+        assertThat(seeker.getEmail()).isEqualTo("sam@example.com");
+    }
+
+    @Test
+    @DisplayName("Invalid email format is rejected")
+    void invalidEmailFormatIsRejected() {
         assertThrows(IllegalArgumentException.class,
                 () -> new Seeker("not-an-email", "Sam", "0707654321"));
     }
+
+    @Test
+    @DisplayName("Email longer than 254 characters is rejected")
+    void emailAboveMaximumLengthIsRejected() {
+        String email = "a".repeat(243) + "@example.com";
+
+        assertThrows(IllegalArgumentException.class,
+                () -> new Seeker(email, "Sam", "0707654321"));
+    }
+
+    @Test
+    @DisplayName("Valid display name is accepted")
+    void validDisplayNameIsAccepted() {
+        Seeker seeker = new Seeker(
+                "sam@example.com",
+                "Anne-Marie O'Neil",
+                "0707654321"
+        );
+
+        assertThat(seeker.getDisplayName()).isEqualTo("Anne-Marie O'Neil");
+    }
+
+    @Test
+    @DisplayName("Display name shorter than 2 characters is rejected")
+    void displayNameBelowMinimumLengthIsRejected() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Seeker("sam@example.com", "A", "0707654321"));
+    }
+
+    @Test
+    @DisplayName("Display name longer than 40 characters is rejected")
+    void displayNameAboveMaximumLengthIsRejected() {
+        String displayName = "A".repeat(41);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> new Seeker("sam@example.com", displayName, "0707654321"));
+    }
+
+    @Test
+    @DisplayName("Display name with invalid characters is rejected")
+    void displayNameWithInvalidCharactersIsRejected() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Seeker("sam@example.com", "Sam123", "0707654321"));
+    }
+
+    @Test
+    @DisplayName("Valid Swedish phone number is accepted")
+    void validSwedishPhoneNumberIsAccepted() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "0707654321");
+
+        assertThat(seeker.getPhoneNumber()).isEqualTo("0707654321");
+    }
+
+    @Test
+    @DisplayName("Valid international phone number is accepted")
+    void validInternationalPhoneNumberIsAccepted() {
+        Seeker seeker = new Seeker("sam@example.com", "Sam", "+4671234567");
+
+        assertThat(seeker.getPhoneNumber()).isEqualTo("+4671234567");
+    }
+
+    @Test
+    @DisplayName("Invalid phone number is rejected")
+    void invalidPhoneNumberIsRejected() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Seeker("sam@example.com", "Sam", "070123456"));
+    }
+
+    // TODO (BVA): just-below / at / just-above the 10.00 minimum top-up (FR-1.3).
+    // TODO (BVA): a top-up that would push the balance above 20000.00 is rejected (FR-1.3).
+    // TODO (Decision table): expected fee + max-bookings for each trust tier (FR-1.2).
 }
