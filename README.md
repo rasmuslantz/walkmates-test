@@ -17,6 +17,14 @@ application code and UI may continue to evolve as long as the frozen behavior un
 preserved. See [`LAB_MATERIAL_VERSION.md`](LAB_MATERIAL_VERSION.md) for the policy and release
 notes.
 
+## Unit testing and coverage examples
+
+Explore unit testing, Arrange–Act–Assert, fixtures, parameterization, and structural coverage
+using the real pet catalog. Start with [test-examples/README.md](test-examples/README.md),
+then read the commented tests alongside the production code.
+Run `mvn -Pexamples clean test` to select these examples and write separate reports under
+`target/examples/`. Normal lab commands and their test sources remain unchanged.
+
 ## Quick start
 
 ```bash
