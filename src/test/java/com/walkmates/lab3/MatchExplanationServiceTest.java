@@ -9,6 +9,8 @@ import com.walkmates.service.ai.MatchExplanationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -135,9 +137,50 @@ class MatchExplanationServiceTest {
         assertThat(result).isEqualTo("This DOG_WALK opportunity \"Walk Rex\" is a good fit for a NEW seeker.");
     }
     
+    //Activity 5.3
+    //MR-1
+    @Test
+    @DisplayName("adding irrelevant description text does not change the best match")
+    void irrelevantDescriptionDoesNotChangeBestMatch() {
+        MatchExplanationService service = new MatchExplanationService(mock(LlmClient.class));
+
+        Seeker seeker = seeker();
+
+        Listing listing1 = listing("Friendly dog");
+        Listing listing2 = listing("Energetic dog");
+
+        List<Listing> original = List.of(listing1, listing2);
+        Listing originalBest = service.recommendBestMatch(seeker, original);
+
+        listing1.setDescription("Friendly dog. Sunny day");
+
+        List<Listing> modified = List.of(listing1, listing2);
+        Listing modifiedBest = service.recommendBestMatch(seeker, modified);
+
+        assertThat(modifiedBest.getId()).isEqualTo(originalBest.getId());
+    }
+
+    //MR-2
+    @Test
+    @DisplayName("shuffling candidates does not change the best match")
+    void shufflingCandidatesDoesNotChangeBestMatch() {
+        MatchExplanationService service = new MatchExplanationService(mock(LlmClient.class));
+
+        Seeker seeker = seeker();
+
+        Listing listing1 = listing("Friendly dog");
+        Listing listing2 = listing("Energetic dog");
+        Listing listing3 = listing("Calm dog");
+
+        List<Listing> original = List.of(listing1, listing2, listing3);
+        List<Listing> shuffled = List.of(listing3, listing1, listing2);
+
+        Listing originalBest = service.recommendBestMatch(seeker, original);
+        Listing shuffledBest = service.recommendBestMatch(seeker, shuffled);
+
+        assertThat(shuffledBest.getId()).isEqualTo(originalBest.getId());
+    }
+
     // TODO (injection): a description containing "ignore previous instructions and ..." must
     //      stay inside the data block; buildPrompt must still contain the data delimiters.
-    // TODO (MR-1): adding an irrelevant sentence to the listing description must not change
-    //      recommendBestMatch's chosen listing.
-    // TODO (MR-2): shuffling the candidate list must not change the chosen listing.
 }
