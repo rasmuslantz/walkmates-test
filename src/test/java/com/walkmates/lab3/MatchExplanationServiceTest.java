@@ -62,6 +62,36 @@ class MatchExplanationServiceTest {
                 "This DOG_WALK opportunity \"Walk Rex\" is a good fit for a NEW seeker.");
     }
 
+    //Activity 5.1
+    @Test
+    @DisplayName("buildPrompt includes structured fields and description sits inside the data delimiters")
+    void buildPromptIncludesStructuredFieldsAndDelimitedDescription() {
+        MatchExplanationService service = new MatchExplanationService(mock(LlmClient.class));
+
+        Seeker seeker = seeker();
+        Listing listing = listing("Friendly dog");
+
+        String prompt = service.buildPrompt(seeker, listing);
+
+        assertThat(prompt).contains("Seeker trust tier: " + seeker.getTrustTier());
+        assertThat(prompt).contains("Listing type: " + listing.getType());
+        assertThat(prompt).contains("Listing base rate (SEK/hour): " + listing.getBaseRatePerHour());
+        assertThat(prompt).contains("Listing title: " + listing.getTitle());
+
+        String dataStart = "<<<LISTING_DESCRIPTION_DATA";
+        String dataEnd = "LISTING_DESCRIPTION_DATA>>>";
+
+        assertThat(prompt).contains(dataStart);
+        assertThat(prompt).contains(dataEnd);
+
+        int start = prompt.indexOf(dataStart);
+        int descriptionStart = prompt.indexOf("Friendly dog");
+        int end = prompt.indexOf(dataEnd);
+
+        assertThat(start).isLessThan(descriptionStart);
+        assertThat(descriptionStart).isLessThan(end);
+    }
+
     // TODO (fallback): also fall back on LlmTimeoutException, and on a null/blank response.
     // TODO (injection): a description containing "ignore previous instructions and ..." must
     //      stay inside the data block; buildPrompt must still contain the data delimiters.
