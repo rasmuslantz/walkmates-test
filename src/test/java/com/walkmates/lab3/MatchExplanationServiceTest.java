@@ -92,7 +92,49 @@ class MatchExplanationServiceTest {
         assertThat(descriptionStart).isLessThan(end);
     }
 
-    // TODO (fallback): also fall back on LlmTimeoutException, and on a null/blank response.
+    //Activity 5.2
+    @Test
+    @DisplayName("explainMatch falls back when the LLM call times out")
+    void fallsBackOnLlmTimeout() throws Exception {
+        LlmClient llm = mock(LlmClient.class);
+
+        when(llm.complete(org.mockito.ArgumentMatchers.anyString())).thenThrow(new LlmClient.LlmTimeoutException("request timed out"));
+
+        MatchExplanationService service = new MatchExplanationService(llm);
+
+        String result = service.explainMatch(seeker(), listing("Friendly dog"));
+
+        assertThat(result).isEqualTo("This DOG_WALK opportunity \"Walk Rex\" is a good fit for a NEW seeker.");
+    }
+
+    @Test
+    @DisplayName("explainMatch falls back when the LLM returns null")
+    void fallsBackOnNullResponse() throws Exception {
+        LlmClient llm = mock(LlmClient.class);
+
+        when(llm.complete(org.mockito.ArgumentMatchers.anyString())).thenReturn(null);
+
+        MatchExplanationService service = new MatchExplanationService(llm);
+
+        String result = service.explainMatch(seeker(), listing("Friendly dog"));
+
+        assertThat(result).isEqualTo("This DOG_WALK opportunity \"Walk Rex\" is a good fit for a NEW seeker.");
+    }
+
+    @Test
+    @DisplayName("explainMatch falls back when the LLM returns a blank response")
+    void fallsBackOnBlankResponse() throws Exception {
+        LlmClient llm = mock(LlmClient.class);
+
+        when(llm.complete(org.mockito.ArgumentMatchers.anyString())).thenReturn("   ");
+
+        MatchExplanationService service = new MatchExplanationService(llm);
+
+        String result = service.explainMatch(seeker(), listing("Friendly dog"));
+
+        assertThat(result).isEqualTo("This DOG_WALK opportunity \"Walk Rex\" is a good fit for a NEW seeker.");
+    }
+    
     // TODO (injection): a description containing "ignore previous instructions and ..." must
     //      stay inside the data block; buildPrompt must still contain the data delimiters.
     // TODO (MR-1): adding an irrelevant sentence to the listing description must not change
